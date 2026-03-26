@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search, Plus, ChevronDown, CalendarDays, MapPin, Users, MoreVertical, AlertCircle } from "lucide-react";
 import { MockEvent, EventStatus, STATUS_STYLES } from "@/lib/mockEvents";
+import { getBackendBaseUrl } from "@/shared/config/data-mode";
 
 type ToastMsg = { title: string; subtitle: string } | null;
 
@@ -247,8 +248,15 @@ export default function EventsPage() {
     return matchSearch && matchStatus;
   });
 
-  const handleDeleteConfirm = () => {
-    if (deleteId) setEvents((prev) => prev.filter((e) => e.id !== deleteId));
+  const handleDeleteConfirm = async () => {
+    if (deleteId) {
+       try {
+          await fetch(`${getBackendBaseUrl()}/api/v1/events/${deleteId}`, { method: "DELETE" });
+          setEvents((prev) => prev.filter((e) => e.id !== deleteId));
+       } catch (err) {
+          console.error("Failed to delete event", err);
+       }
+    }
     setDeleteId(null);
   };
 

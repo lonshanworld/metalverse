@@ -58,7 +58,7 @@ export default function CreateParticipantsPage() {
                 days, outcomes, speakers, eligibilitySelected,
                 credentials, termsText, requireConsent,
                 regStart, regStartTime, regEnd, regEndTime,
-                timezone, eventType,
+                timezone, eventType, editId,
             } = ctx;
 
             if (!eventName.trim()) {
@@ -110,7 +110,13 @@ export default function CreateParticipantsPage() {
                     slots: day.slots.map(s => ({ time: s.time, activity: s.activity })),
                 })),
 
-                // Location
+                // Location (flat inline fields matching CreateEventRequest payload)
+                location_name: locationName,
+                location_address1: locationAddress,
+                location_city: city,
+                location_country: country,
+                location_type: locationType,
+                // Included for generic hydration
                 location: {
                     type: locationType,
                     name: locationName,
@@ -168,8 +174,14 @@ export default function CreateParticipantsPage() {
                 }),
             };
 
-            const response = await fetch(`${getBackendBaseUrl()}/api/v1/events`, {
-                method: "POST",
+            const isEditing = !!editId;
+            const url = isEditing 
+                  ? `${getBackendBaseUrl()}/api/v1/events/${editId}` 
+                  : `${getBackendBaseUrl()}/api/v1/events`;
+            const method = isEditing ? "PUT" : "POST";
+
+            const response = await fetch(url, {
+                method,
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload),
             });

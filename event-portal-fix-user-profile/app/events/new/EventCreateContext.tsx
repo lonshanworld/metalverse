@@ -45,6 +45,7 @@ export function makeCredential(id: number): Credential {
 // ─── Context type ─────────────────────────────────────────────────────────────
 
 interface Ctx {
+  editId: string | null;
   // ── Page 1: Basic info ─────────────────────────────────────────────────────
   eventName: string;       setEventName: (v: string) => void;
   eventType: string;       setEventType: (v: string) => void;
@@ -95,7 +96,14 @@ const EventCreateContext = createContext<Ctx>({} as Ctx);
 
 export function EventCreateProvider({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams();
-  const editId = searchParams.get("editId");
+  const rawEditId = searchParams.get("editId");
+  const [editId, setEditId] = useState<string | null>(rawEditId);
+
+  useEffect(() => {
+    if (rawEditId && !editId) {
+      setEditId(rawEditId);
+    }
+  }, [rawEditId, editId]);
 
   const TEXT_KEY = "mv_event_create_draft";
   const [draftLoaded, setDraftLoaded] = useState(false);
@@ -288,7 +296,7 @@ export function EventCreateProvider({ children }: { children: React.ReactNode })
 
   return (
     <EventCreateContext.Provider value={{
-      eventName, setEventName, eventType, setEventType, overview, setOverview,
+      editId, eventName, setEventName, eventType, setEventType, overview, setOverview,
       smallBanner, setSmallBanner, largeBanner, setLargeBanner,
       tba, setTba, eventDate, setEventDate, eventTime, setEventTime,
       timezone, setTimezone, eventEndDate, setEventEndDate, eventEndTime, setEventEndTime,

@@ -51,6 +51,18 @@ export default function DateInput({ value, onChange, className = "" }: DateInput
   const [viewYear, setViewYear] = useState(selectedDate?.getFullYear() ?? today.getFullYear());
   const [viewMonth, setViewMonth] = useState(selectedDate?.getMonth() ?? today.getMonth());
 
+  // Sync internal UI when external value changes asynchronously
+  useEffect(() => {
+    setTyped(toDisplay(value));
+    if (value) {
+      const d = new Date(value + "T00:00:00");
+      if (!isNaN(d.getTime())) {
+        setViewYear(d.getFullYear());
+        setViewMonth(d.getMonth());
+      }
+    }
+  }, [value]);
+
   // Close on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {

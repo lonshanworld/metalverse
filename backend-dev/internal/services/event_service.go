@@ -71,6 +71,13 @@ type UpdateEventRequest struct {
 	CoverFileID          *uuid.UUID `json:"cover_file_id"`
 	IsSponsored          *bool      `json:"is_sponsored"`
 	Status               string     `json:"status"`
+
+	// Inline location fields 
+	LocationName    string `json:"location_name"`
+	LocationAddress string `json:"location_address1"`
+	LocationCity    string `json:"location_city"`
+	LocationCountry string `json:"location_country"`
+	LocationType    string `json:"location_type"`
 }
 
 type PaginatedEvents struct {
@@ -199,6 +206,27 @@ func (s *eventService) Update(id uuid.UUID, req UpdateEventRequest) (*models.Eve
 	}
 	if req.EventTypeID != nil {
 		event.EventTypeID = req.EventTypeID
+	}
+	if req.LocationName != "" {
+		if event.LocationID != nil {
+			var loc models.Location
+			if err := s.db.First(&loc, "location_id = ?", *event.LocationID).Error; err == nil {
+				loc.Name = req.LocationName
+				loc.Address1 = req.LocationAddress
+				loc.Province = req.LocationCity
+				loc.Country = req.LocationCountry
+				s.db.Save(&loc)
+			}
+		} else {
+			loc := &models.Location{
+				Name:     req.LocationName,
+				Address1: req.LocationAddress,
+				Province: req.LocationCity,
+				Country:  req.LocationCountry,
+			}
+			s.db.Create(loc)
+			event.LocationID = &loc.LocationID
+		}
 	}
 	if req.FieldID != nil {
 		event.FieldID = req.FieldID
