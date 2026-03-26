@@ -25,6 +25,7 @@ type CreateEventRequest struct {
 	Name                 string     `json:"name" binding:"required"`
 	ShortDescription     string     `json:"short_description"`
 	Description          string     `json:"description"`
+	EventTypeRaw         string     `json:"event_type"`
 	EventTypeID          *uuid.UUID `json:"event_type_id"`
 	FieldID              *uuid.UUID `json:"field_id"`
 	ParticipationModeID  *uuid.UUID `json:"participation_mode_id"`
@@ -50,6 +51,7 @@ type UpdateEventRequest struct {
 	Name                 string     `json:"name"`
 	ShortDescription     string     `json:"short_description"`
 	Description          string     `json:"description"`
+	EventTypeRaw         string     `json:"event_type"`
 	EventTypeID          *uuid.UUID `json:"event_type_id"`
 	FieldID              *uuid.UUID `json:"field_id"`
 	ParticipationModeID  *uuid.UUID `json:"participation_mode_id"`
@@ -138,6 +140,7 @@ func (s *eventService) Create(req CreateEventRequest) (*models.Event, error) {
 		Name:                 req.Name,
 		ShortDescription:     req.ShortDescription,
 		Description:          req.Description,
+		EventTypeRaw:         req.EventTypeRaw,
 		EventTypeID:          req.EventTypeID,
 		FieldID:              req.FieldID,
 		ParticipationModeID:  req.ParticipationModeID,
@@ -175,6 +178,9 @@ func (s *eventService) Update(id uuid.UUID, req UpdateEventRequest) (*models.Eve
 	}
 	if req.Description != "" {
 		event.Description = req.Description
+	}
+	if req.EventTypeRaw != "" {
+		event.EventTypeRaw = req.EventTypeRaw
 	}
 	if req.LocationID != nil {
 		event.LocationID = req.LocationID

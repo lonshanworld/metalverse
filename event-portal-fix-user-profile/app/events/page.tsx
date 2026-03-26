@@ -79,7 +79,7 @@ function EventCard({
 
   const menuItems: { label: string; action: () => void; danger?: boolean }[] = [];
   if (event.status === "pending" || event.status === "revision") {
-    menuItems.push({ label: "Edit", action: () => router.push(`/events/new?id=${event.id}`) });
+    menuItems.push({ label: "Edit", action: () => router.push(`/events/new?editId=${event.id}`) });
   }
   if (event.status === "pending") {
     menuItems.push({ label: "Delete", action: () => onDelete(event.id), danger: true });

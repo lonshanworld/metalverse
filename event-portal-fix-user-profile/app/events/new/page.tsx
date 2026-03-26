@@ -4,7 +4,7 @@ import { useMemo, useRef, useEffect, useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import DateInput from "@/components/DateInput";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft, Plus, Upload, Clock, ChevronDown, MapPin, Globe,
   Infinity, User, Trash2,
@@ -229,6 +229,8 @@ function TimePicker({ value, onChange }: { value: string; onChange: (v: string) 
 
 export default function CreateEventPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get("editId");
   const ctx = useEventCreate();
   const {
     eventName, setEventName, eventType, setEventType, overview, setOverview,
@@ -281,8 +283,8 @@ export default function CreateEventPage() {
     if (eventType.split(",").filter(Boolean).length === 0) return false;
     if (!overview.trim()) return false;
     // Banners
-    if (!smallBanner) return false;
-    if (!largeBanner) return false;
+    if (!smallBanner && !editId) return false;
+    if (!largeBanner && !editId) return false;
     // Event dates
     if (!tba) {
       if (!eventDate || !eventTime || !eventEndDate || !eventEndTime) return false;
@@ -318,7 +320,7 @@ export default function CreateEventPage() {
     }
     // Speakers
     for (const s of speakers) {
-      if (!s.name.trim() || !s.position.trim() || !s.bio.trim() || !s.photo) return false;
+      if (!s.name.trim() || !s.position.trim() || !s.bio.trim() || (!s.photo && !editId)) return false;
     }
     return true;
   }, [
@@ -327,7 +329,7 @@ export default function CreateEventPage() {
     regStart, regStartTime, regEnd, regEndTime, regPeriodError, eventRegPeriod,
     days, isMultiDay, isSingleDay,
     locationType, locationName, locationAddress, city, country,
-    seatsType, numSeats, outcomes, speakers,
+    seatsType, numSeats, outcomes, speakers, editId
   ]);
 
   // ── Agenda helpers ───────────────────────────────────────────────────────

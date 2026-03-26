@@ -20,7 +20,6 @@ func AuthMiddleware(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
-		
 		parts := strings.Split(authHeader, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid authorization header format"})
@@ -36,9 +35,25 @@ func AuthMiddleware(cfg *config.Config) gin.HandlerFunc {
 			return
 		}
 
-		
 		c.Set("user_id", claims.UserID)
 		c.Set("user_email", claims.Email)
+		c.Next()
+	}
+}
+
+func OptionalAuthMiddleware(cfg *config.Config) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		authHeader := c.GetHeader("Authorization")
+		if authHeader != "" {
+			parts := strings.Split(authHeader, " ")
+			if len(parts) == 2 && parts[0] == "Bearer" {
+				token := parts[1]
+				if claims, err := utils.ValidateToken(token, cfg.JWT.Secret); err == nil {
+					c.Set("user_id", claims.UserID)
+					c.Set("user_email", claims.Email)
+				}
+			}
+		}
 		c.Next()
 	}
 }
@@ -48,6 +63,13 @@ func GetUserID(c *gin.Context) (uuid.UUID, bool) {
 	userID, exists := c.Get("user_id")
 	if !exists {
 		return uuid.Nil, false
+	}
+
+	if idStr, ok := userID.(string); ok {
+		id, err := uuid.Parse(idStr)
+		if err == nil {
+			return id, true
+		}
 	}
 
 	id, ok := userID.(uuid.UUID)

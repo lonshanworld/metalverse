@@ -1,6 +1,9 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { mockEvents } from "@/lib/mockEvents";
+import { getBackendBaseUrl } from "@/shared/config/data-mode";
 
 // ─── Shared types (imported by all pages in the flow) ─────────────────────────
 
@@ -91,6 +94,9 @@ const EventCreateContext = createContext<Ctx>({} as Ctx);
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
 export function EventCreateProvider({ children }: { children: React.ReactNode }) {
+  const searchParams = useSearchParams();
+  const editId = searchParams.get("editId");
+
   const TEXT_KEY = "mv_event_create_draft";
   const [draftLoaded, setDraftLoaded] = useState(false);
 
@@ -136,6 +142,53 @@ export function EventCreateProvider({ children }: { children: React.ReactNode })
 
   // ── Restore text-only fields from localStorage on first mount ──────────────
   useEffect(() => {
+    if (editId) {
+      fetch(`${getBackendBaseUrl()}/api/v1/events/${editId}`)
+        .then(res => res.json())
+        .then(event => {
+          if (event) {
+            if (event.name) setEventName(event.name);
+            if (event.event_type) setEventType(event.event_type);
+            if (event.description || event.short_description) setOverview(event.description || event.short_description);
+            if (event.capacity != null) {
+              setSeatsType(event.capacity > 0 ? "limited" : "unlimited");
+              setNumSeats(event.capacity.toString());
+            }
+            if (event.location) {
+              setLocationName(event.location.name || "");
+              setLocationAddress(event.location.address1 || "");
+            }
+            if (event.start_at) {
+              const date = new Date(event.start_at);
+              if (!isNaN(date.getTime())) {
+                setEventDate(`${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`);
+                let h = date.getHours();
+                const ampm = h >= 12 ? 'PM' : 'AM';
+                h = h % 12;
+                h = h ? h : 12;
+                setEventTime(`${String(h).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')} ${ampm}`);
+              }
+            }
+            if (event.end_at) {
+              const date = new Date(event.end_at);
+              if (!isNaN(date.getTime())) {
+                setEventEndDate(`${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`);
+                let h = date.getHours();
+                const ampm = h >= 12 ? 'PM' : 'AM';
+                h = h % 12;
+                h = h ? h : 12;
+                setEventEndTime(`${String(h).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')} ${ampm}`);
+              }
+            }
+          }
+        })
+        .catch(err => console.error("Failed to load event data", err))
+        .finally(() => {
+          setDraftLoaded(true);
+        });
+      return;
+    }
+
     try {
       const raw = localStorage.getItem(TEXT_KEY);
       if (raw) {

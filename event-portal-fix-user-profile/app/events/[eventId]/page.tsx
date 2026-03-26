@@ -125,7 +125,7 @@ export default function EventDetailPage({ params }: { params: Promise<{ eventId:
             </div>
           </div>
           <div className="flex items-center gap-2 flex-shrink-0 pl-9 sm:pl-0">
-            <Link href="/events/new"
+            <Link href={`/events/new?editId=${event.id}`}
               className="flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition">
               <Pencil size={14} />
               Edit Event

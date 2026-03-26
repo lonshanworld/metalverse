@@ -44,3 +44,6 @@ logs/
 # MinIO data
 minio-data/
 .claude
+
+.env
+.env.example

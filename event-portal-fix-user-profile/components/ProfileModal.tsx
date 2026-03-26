@@ -100,6 +100,7 @@ type OnboardingProfile = {
   orgName: string;
   abbreviation: string;
   orgType: string;
+  customOrgType?: string;
   city: string;
   country: string;
   website: string;
@@ -183,7 +184,7 @@ export default function ProfileModal({
     orgName: onboardingProfile?.orgName ?? "",
     abbrev: onboardingProfile?.abbreviation ?? "",
     orgType: onboardingProfile?.orgType ?? "",
-    orgTypeOther: "",
+    orgTypeOther: onboardingProfile?.customOrgType ?? "",
     city: onboardingProfile?.city ?? "",
     country: onboardingProfile?.country ?? "",
     link1: onboardingProfile?.website ?? "",
@@ -228,6 +229,7 @@ export default function ProfileModal({
     setOrgName(initProfile.orgName);
     setAbbrev(initProfile.abbrev);
     setOrgType(initProfile.orgType);
+    setOrgTypeOther(initProfile.orgTypeOther);
     setCity(initProfile.city);
     setCountry(initProfile.country);
     setLink1(initProfile.link1);
@@ -235,9 +237,12 @@ export default function ProfileModal({
     setLink3(initProfile.link3);
     setEmail(initProfile.email);
     setPhone(initProfile.phone);
+    setPhoneCode(initProfile.phoneCode);
     setRepName(initManagers.repName);
     setRepRole(initManagers.repRole);
+    setRepEmail(initManagers.repEmail);
     setRepPhone(initManagers.repPhone);
+    setRepPhoneCode(initManagers.repPhoneCode);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onboardingProfile, sessionUser]);
 

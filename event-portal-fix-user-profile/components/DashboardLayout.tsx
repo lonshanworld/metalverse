@@ -19,6 +19,7 @@ type OnboardingProfile = {
   orgName: string;
   abbreviation: string;
   orgType: string;
+  customOrgType: string;
   city: string;
   country: string;
   website: string;
@@ -94,6 +95,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           orgName: typeof data.org_name === "string" ? data.org_name : "",
           abbreviation: typeof data.abbreviation === "string" ? data.abbreviation : "",
           orgType: typeof data.org_type === "string" ? data.org_type : "",
+          customOrgType: typeof data.custom_org_type === "string" ? data.custom_org_type : "",
           city: typeof data.city === "string" ? data.city : "",
           country: typeof data.country === "string" ? data.country : "",
           website: typeof data.website === "string" ? data.website : "",

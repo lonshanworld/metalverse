@@ -3,6 +3,7 @@ package routes
 import (
 	"medalverse-be/internal/config"
 	"medalverse-be/internal/handlers"
+	"medalverse-be/internal/middleware"
 	"medalverse-be/internal/services"
 	"medalverse-be/internal/storage"
 
@@ -32,7 +33,7 @@ func SetupRoutes(router *gin.Engine, db *gorm.DB, cfg *config.Config, storage st
 		}
 
 		protected := v1.Group("")
-		// protected.Use(middleware.AuthMiddleware(cfg)) // BYPASSED FOR NOW
+		protected.Use(middleware.OptionalAuthMiddleware(cfg)) // Using OptionalAuthMiddleware to populate UserID when token is present, without failing dev unauthenticated requests.
 		{
 			protected.GET("/profile", authHandler.GetProfile)
 

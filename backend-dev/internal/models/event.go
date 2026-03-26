@@ -14,6 +14,7 @@ type Event struct {
 	Name                 string         `gorm:"column:name;type:text;not null" json:"name"`
 	ShortDescription     string         `gorm:"column:short_description;type:text" json:"short_description"`
 	Description          string         `gorm:"column:description;type:text" json:"description"`
+	EventTypeRaw         string         `gorm:"column:event_type_raw;type:text" json:"event_type"`
 	EventTypeID          *uuid.UUID     `gorm:"column:event_type_id;type:uuid;index" json:"event_type_id"`
 	FieldID              *uuid.UUID     `gorm:"column:field_id;type:uuid;index" json:"field_id"`
 	ParticipationModeID  *uuid.UUID     `gorm:"column:participation_mode_id;type:uuid;index" json:"participation_mode_id"`

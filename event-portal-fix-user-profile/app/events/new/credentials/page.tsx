@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
 import DateInput from "@/components/DateInput";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Upload, ShieldCheck, FileText, Trash2 } from "lucide-react";
 import { useEventCreate, Credential, NameBox, Distribution } from "../EventCreateContext";
 
@@ -358,6 +358,8 @@ function CredentialForm({ cred, index, onChange }: { cred: Credential; index: nu
 
 export default function CreateCredentialsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get("editId");
   const { credentials, setCredentials } = useEventCreate();
 
   const removeCredential = (id: number) => setCredentials(prev => prev.filter(c => c.id !== id));
@@ -367,13 +369,13 @@ export default function CreateCredentialsPage() {
   // Every credential must have all required fields filled
   const canProceed = useMemo(() => credentials.every(c =>
     c.awardName.trim() !== "" &&
-    c.logo !== null &&
-    c.certPreview !== null &&
+    (c.logo !== null || editId) &&
+    (c.certPreview !== null || editId) &&
     c.issuedDate.trim() !== "" &&
     c.rank.trim() !== "" &&
     c.requirements.trim() !== "" &&
     (c.distribution !== "specific" || (c.numParticipants.trim() !== "" && Number(c.numParticipants) > 0))
-  ), [credentials]);
+  ), [credentials, editId]);
 
   return (
     <DashboardLayout>

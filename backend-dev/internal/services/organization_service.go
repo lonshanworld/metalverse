@@ -124,6 +124,12 @@ func (s *organizationService) SubmitOnboarding(req SubmitOrganizationOnboardingR
 }
 
 func (s *organizationService) GetLatestOnboardingSubmissionByEmail(email string) (*models.OrganizationOnboardingSubmission, error) {
+	// First prioritize checking by email on the submission table directly.
+	if submission, err := s.repo.GetLatestOnboardingSubmissionByEmail(email); err == nil {
+		return submission, nil
+	}
+
+	// Fallback for cases where email may have changed but user ID is matching
 	user, err := s.userRepo.GetByEmail(email)
 	if err != nil {
 		return nil, err
