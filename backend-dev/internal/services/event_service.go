@@ -25,15 +25,19 @@ type CreateEventRequest struct {
 	Name                 string     `json:"name" binding:"required"`
 	ShortDescription     string     `json:"short_description"`
 	Description          string     `json:"description"`
-	EventTypeRaw         string     `json:"event_type"`
+	EventTypeRaw         string     `json:"event_type_raw"`
 	EventTypeID          *uuid.UUID `json:"event_type_id"`
 	FieldID              *uuid.UUID `json:"field_id"`
 	ParticipationModeID  *uuid.UUID `json:"participation_mode_id"`
 	CompetitionLevelID   *uuid.UUID `json:"competition_level_id"`
 	StartAt              time.Time  `json:"start_at" binding:"required"`
 	EndAt                time.Time  `json:"end_at" binding:"required"`
+	Timezone             string     `json:"timezone"`
+	RegistrationStartAt  *time.Time `json:"registration_start_at"`
+	RegistrationEndAt    *time.Time `json:"registration_end_at"`
 	RegistrationDeadline *time.Time `json:"registration_deadline"`
 	Capacity             int        `json:"capacity"`
+	HydrationPayload     string     `json:"hydration_payload"`
 	CoverFileID          *uuid.UUID `json:"cover_file_id"`
 	IsSponsored          bool       `json:"is_sponsored"`
 	Status               string     `json:"status"`
@@ -51,15 +55,19 @@ type UpdateEventRequest struct {
 	Name                 string     `json:"name"`
 	ShortDescription     string     `json:"short_description"`
 	Description          string     `json:"description"`
-	EventTypeRaw         string     `json:"event_type"`
+	EventTypeRaw         string     `json:"event_type_raw"`
 	EventTypeID          *uuid.UUID `json:"event_type_id"`
 	FieldID              *uuid.UUID `json:"field_id"`
 	ParticipationModeID  *uuid.UUID `json:"participation_mode_id"`
 	CompetitionLevelID   *uuid.UUID `json:"competition_level_id"`
 	StartAt              *time.Time `json:"start_at"`
 	EndAt                *time.Time `json:"end_at"`
+	Timezone             string     `json:"timezone"`
+	RegistrationStartAt  *time.Time `json:"registration_start_at"`
+	RegistrationEndAt    *time.Time `json:"registration_end_at"`
 	RegistrationDeadline *time.Time `json:"registration_deadline"`
 	Capacity             *int       `json:"capacity"`
+	HydrationPayload     string     `json:"hydration_payload"`
 	CoverFileID          *uuid.UUID `json:"cover_file_id"`
 	IsSponsored          *bool      `json:"is_sponsored"`
 	Status               string     `json:"status"`
@@ -147,9 +155,13 @@ func (s *eventService) Create(req CreateEventRequest) (*models.Event, error) {
 		CompetitionLevelID:   req.CompetitionLevelID,
 		StartAt:              req.StartAt,
 		EndAt:                req.EndAt,
+		Timezone:             req.Timezone,
+		RegistrationStartAt:  req.RegistrationStartAt,
+		RegistrationEndAt:    req.RegistrationEndAt,
 		RegistrationDeadline: req.RegistrationDeadline,
 		Capacity:             req.Capacity,
 		RemainingSeats:       req.Capacity,
+		HydrationPayload:     req.HydrationPayload,
 		CoverFileID:          req.CoverFileID,
 		IsSponsored:          req.IsSponsored,
 		Status:               req.Status,
@@ -203,11 +215,23 @@ func (s *eventService) Update(id uuid.UUID, req UpdateEventRequest) (*models.Eve
 	if req.EndAt != nil {
 		event.EndAt = *req.EndAt
 	}
+	if req.Timezone != "" {
+		event.Timezone = req.Timezone
+	}
+	if req.RegistrationStartAt != nil {
+		event.RegistrationStartAt = req.RegistrationStartAt
+	}
+	if req.RegistrationEndAt != nil {
+		event.RegistrationEndAt = req.RegistrationEndAt
+	}
 	if req.RegistrationDeadline != nil {
 		event.RegistrationDeadline = req.RegistrationDeadline
 	}
 	if req.Capacity != nil {
 		event.Capacity = *req.Capacity
+	}
+	if req.HydrationPayload != "" {
+		event.HydrationPayload = req.HydrationPayload
 	}
 	if req.CoverFileID != nil {
 		event.CoverFileID = req.CoverFileID

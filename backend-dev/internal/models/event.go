@@ -14,16 +14,20 @@ type Event struct {
 	Name                 string         `gorm:"column:name;type:text;not null" json:"name"`
 	ShortDescription     string         `gorm:"column:short_description;type:text" json:"short_description"`
 	Description          string         `gorm:"column:description;type:text" json:"description"`
-	EventTypeRaw         string         `gorm:"column:event_type_raw;type:text" json:"event_type"`
+	EventTypeRaw         string         `gorm:"column:event_type_raw;type:text" json:"event_type_raw"`
 	EventTypeID          *uuid.UUID     `gorm:"column:event_type_id;type:uuid;index" json:"event_type_id"`
 	FieldID              *uuid.UUID     `gorm:"column:field_id;type:uuid;index" json:"field_id"`
 	ParticipationModeID  *uuid.UUID     `gorm:"column:participation_mode_id;type:uuid;index" json:"participation_mode_id"`
 	CompetitionLevelID   *uuid.UUID     `gorm:"column:competition_level_id;type:uuid;index" json:"competition_level_id"`
 	StartAt              time.Time      `gorm:"column:start_at;type:timestamptz;not null" json:"start_at"`
 	EndAt                time.Time      `gorm:"column:end_at;type:timestamptz;not null" json:"end_at"`
+	Timezone             string         `gorm:"column:timezone;type:text" json:"timezone"`
+	RegistrationStartAt  *time.Time     `gorm:"column:registration_start_at;type:timestamptz" json:"registration_start_at"`
+	RegistrationEndAt    *time.Time     `gorm:"column:registration_end_at;type:timestamptz" json:"registration_end_at"`
 	RegistrationDeadline *time.Time     `gorm:"column:registration_deadline;type:timestamptz" json:"registration_deadline"`
 	Capacity             int            `gorm:"column:capacity;type:int" json:"capacity"`
 	RemainingSeats       int            `gorm:"column:remaining_seats;type:int" json:"remaining_seats"`
+	HydrationPayload     string         `gorm:"column:hydration_payload;type:json" json:"hydration_payload"`
 	CoverFileID          *uuid.UUID     `gorm:"column:cover_file_id;type:uuid;index" json:"cover_file_id"`
 	IsSponsored          bool           `gorm:"column:is_sponsored;type:boolean;default:false" json:"is_sponsored"`
 	Status               string         `gorm:"column:status;type:text" json:"status"` // PENDING, PUBLISHED, CANCELLED, COMPLETED

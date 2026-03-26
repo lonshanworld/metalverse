@@ -148,7 +148,7 @@ export function EventCreateProvider({ children }: { children: React.ReactNode })
         .then(event => {
           if (event) {
             if (event.name) setEventName(event.name);
-            if (event.event_type) setEventType(event.event_type);
+            if (event.event_type_raw) setEventType(event.event_type_raw);
             if (event.description || event.short_description) setOverview(event.description || event.short_description);
             if (event.capacity != null) {
               setSeatsType(event.capacity > 0 ? "limited" : "unlimited");
@@ -157,6 +157,8 @@ export function EventCreateProvider({ children }: { children: React.ReactNode })
             if (event.location) {
               setLocationName(event.location.name || "");
               setLocationAddress(event.location.address1 || "");
+              setCity(event.location.province || "");
+              setCountry(event.location.country || "");
             }
             if (event.start_at) {
               const date = new Date(event.start_at);
@@ -179,6 +181,49 @@ export function EventCreateProvider({ children }: { children: React.ReactNode })
                 h = h ? h : 12;
                 setEventEndTime(`${String(h).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')} ${ampm}`);
               }
+            }
+            if (event.timezone) setTimezone(event.timezone);
+            if (event.registration_start_at) {
+              const date = new Date(event.registration_start_at);
+              if (!isNaN(date.getTime())) {
+                setRegStart(`${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`);
+                let h = date.getHours(); const ampm = h >= 12 ? 'PM' : 'AM'; h = h % 12; h = h || 12;
+                setRegStartTime(`${String(h).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')} ${ampm}`);
+              }
+            }
+            if (event.registration_end_at) {
+              const date = new Date(event.registration_end_at);
+              if (!isNaN(date.getTime())) {
+                setRegEnd(`${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`);
+                let h = date.getHours(); const ampm = h >= 12 ? 'PM' : 'AM'; h = h % 12; h = h || 12;
+                setRegEndTime(`${String(h).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')} ${ampm}`);
+              }
+            }
+            if (event.hydration_payload) {
+               try {
+                 const hp = JSON.parse(event.hydration_payload);
+                 if (hp.agenda && Array.isArray(hp.agenda)) {
+                    setDays(hp.agenda.map((d: any, i: number) => ({
+                        id: i + 1, date: d.date, 
+                        slots: d.slots.map((s: any, j: number) => ({ id: j + 1, time: s.time, activity: s.activity }))
+                    })));
+                 }
+                 if (hp.outcomes && Array.isArray(hp.outcomes)) {
+                    setOutcomes(hp.outcomes.map((o: any, i: number) => ({ id: i + 1, title: o.title, description: o.description })));
+                 }
+                 if (hp.speakers && Array.isArray(hp.speakers)) {
+                    setSpeakers(hp.speakers.map((s: any, i: number) => ({ id: i + 1, name: s.name, position: s.position, bio: s.bio, photo: null, photoPreview: null })));
+                 }
+                 if (hp.eligibility && Array.isArray(hp.eligibility)) setEligibilitySelected(hp.eligibility);
+                 if (hp.credentials && Array.isArray(hp.credentials)) {
+                    setCredentials(hp.credentials.map((c: any, i: number) => ({
+                       id: i + 1, awardName: c.award_name, color: c.color, colorName: "Theme Match",
+                       logo: null, logoPreview: null, certTemplate: null, certPreview: null, certIsPdf: false,
+                       nameBox: c.name_box, issuedDate: c.issued_date, rank: c.rank, distribution: c.distribution, 
+                       numParticipants: c.num_participants != null ? c.num_participants.toString() : "", requirements: c.requirements
+                    })));
+                 }
+               } catch(e) { console.error("Could not parse hydration payload", e); }
             }
           }
         })

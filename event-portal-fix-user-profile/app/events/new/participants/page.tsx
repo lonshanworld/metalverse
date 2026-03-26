@@ -91,7 +91,7 @@ export default function CreateParticipantsPage() {
                 name: eventName,
                 short_description: overview ? overview.slice(0, 160) : "Event",
                 description: overview,
-                event_type: eventType,
+                event_type_raw: eventType,
                 start_at: startAt?.toISOString() ?? null,
                 end_at: endAt?.toISOString() ?? null,
                 is_tba: tba,
@@ -153,6 +153,19 @@ export default function CreateParticipantsPage() {
                     text: termsText,
                     require_consent: requireConsent,
                 },
+
+                // Stringified payload for reliable 1:1 edit hydration
+                hydration_payload: JSON.stringify({
+                    agenda: days.map(day => ({ date: day.date, slots: day.slots.map(s => ({ time: s.time, activity: s.activity })) })),
+                    outcomes: outcomes.map(o => ({ title: o.title, description: o.description })),
+                    speakers: speakers.map(s => ({ name: s.name, position: s.position, bio: s.bio })),
+                    eligibility: eligibilitySelected,
+                    credentials: credentials.map(c => ({
+                        award_name: c.awardName, color: c.color, issued_date: c.issuedDate, rank: c.rank,
+                        distribution: c.distribution, num_participants: c.distribution === "specific" ? Number(c.numParticipants) : null,
+                        requirements: c.requirements, name_box: c.nameBox,
+                    })),
+                }),
             };
 
             const response = await fetch(`${getBackendBaseUrl()}/api/v1/events`, {
