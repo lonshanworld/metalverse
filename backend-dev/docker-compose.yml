@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: medalverse-postgres
+    environment:
+      POSTGRES_USER: medalverse
+      POSTGRES_PASSWORD: medalverse_password
+      POSTGRES_DB: medalverse_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U medalverse" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - medalverse-network
+
+  minio:
+    image: minio/minio:latest
+    container_name: medalverse-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - medalverse-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: medalverse-app
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - MINIO_ENDPOINT=minio:9000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
+    volumes:
+      - .:/app
+    networks:
+      - medalverse-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  minio_data:
+
+
+networks:
+  medalverse-network:
+    driver: bridge

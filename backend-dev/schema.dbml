@@ -1,0 +1,299 @@
+Project Medalverse {
+  database_type: 'PostgreSQL'
+  Note: 'Medalverse Backend Database Schema (Improved for Event Cards + Filters + Detail Page)'
+}
+
+Table users {
+  user_id uuid [pk, default: `uuid_generate_v4()`]
+  email varchar [not null, unique]
+  username varchar [not null, unique]
+  password varchar [not null]
+  first_name varchar
+  last_name varchar
+  avatar_file_id uuid
+  is_active boolean [default: true]
+  created_at timestamptz [default: `now()`]
+  updated_at timestamptz [default: `now()`]
+  deleted_at timestamptz
+}
+
+Table organizations {
+  org_id uuid [pk, default: `uuid_generate_v4()`]
+  abbreviation text
+  name text [not null]
+  description text
+  logo_file_id uuid
+  website text
+  is_active boolean [default: true]
+  created_at timestamptz [default: `now()`]
+  updated_at timestamptz [default: `now()`]
+  deleted_at timestamptz
+}
+
+Table organization_members {
+  org_member_id uuid [pk, default: `uuid_generate_v4()`]
+  org_id uuid [not null]
+  user_id uuid [not null]
+  role text // OWNER, ADMIN, STAFF
+  created_at timestamptz [default: `now()`]
+}
+Ref: organization_members.org_id > organizations.org_id
+Ref: organization_members.user_id > users.user_id
+
+Table locations {
+  location_id uuid [pk, default: `uuid_generate_v4()`]
+  name text
+  address1 text
+  address2 text
+  district text
+  province text
+  postal_code text
+  country text
+  latitude numeric
+  longitude numeric
+  created_at timestamptz [default: `now()`]
+}
+
+Table files {
+  file_id uuid [pk, default: `uuid_generate_v4()`]
+  owner_user_id uuid
+  file_name varchar [not null]
+  file_size bigint
+  mime_type varchar
+  storage_key varchar [not null]
+  url varchar
+  created_at timestamptz [default: `now()`]
+  deleted_at timestamptz
+}
+Ref: files.owner_user_id > users.user_id
+
+// ====== MASTER TABLES ======
+Table event_types {
+  event_type_id uuid [pk, default: `uuid_generate_v4()`]
+  code text [not null, unique]
+  name text [not null]
+  is_active boolean [default: true]
+}
+
+Table fields {
+  field_id uuid [pk, default: `uuid_generate_v4()`]
+  code text [not null, unique]
+  name text [not null]
+  is_active boolean [default: true]
+}
+
+Table participation_modes {
+  participation_mode_id uuid [pk, default: `uuid_generate_v4()`]
+  code text [not null, unique]
+  name text [not null]
+  is_active boolean [default: true]
+}
+
+Table competition_levels {
+  competition_level_id uuid [pk, default: `uuid_generate_v4()`]
+  code text [not null, unique]
+  name text [not null]
+  is_active boolean [default: true]
+}
+
+// ====== EVENTS ======
+Table events {
+  event_id uuid [pk, default: `uuid_generate_v4()`]
+  org_id uuid [not null]
+  location_id uuid
+  name text [not null]
+  short_description text
+  description text
+  event_type_id uuid
+  field_id uuid
+  participation_mode_id uuid
+  competition_level_id uuid
+  start_at timestamptz [not null]
+  end_at timestamptz [not null]
+  registration_deadline timestamptz
+  capacity int
+  remaining_seats int
+  cover_file_id uuid
+  is_sponsored boolean [default: false]
+  status text
+  created_by uuid
+  created_at timestamptz [default: `now()`]
+  updated_at timestamptz [default: `now()`]
+  deleted_at timestamptz
+}
+Ref: events.org_id > organizations.org_id
+Ref: events.location_id > locations.location_id
+Ref: events.event_type_id > event_types.event_type_id
+Ref: events.field_id > fields.field_id
+Ref: events.participation_mode_id > participation_modes.participation_mode_id
+Ref: events.competition_level_id > competition_levels.competition_level_id
+Ref: events.cover_file_id > files.file_id
+Ref: events.created_by > users.user_id
+
+// role: 'gallery' | 'document' | 'sponsor_logo'
+// sequence: ลำดับแสดงผลภายใน role เดียวกัน
+Table event_files {
+  event_file_id uuid [pk, default: `uuid_generate_v4()`]
+  event_id uuid [not null]
+  file_id uuid [not null]
+  role text [not null, default: 'gallery', note: 'gallery | document | sponsor_logo']
+  sequence int [default: 0]
+  created_at timestamptz [default: `now()`]
+
+  indexes {
+    (event_id, role, sequence)
+  }
+}
+Ref: event_files.event_id > events.event_id
+Ref: event_files.file_id > files.file_id
+
+Table tags {
+  tag_id uuid [pk, default: `uuid_generate_v4()`]
+  name text [not null, unique]
+}
+Table event_tags {
+  event_id uuid [not null]
+  tag_id uuid [not null]
+  indexes { (event_id, tag_id) [pk] }
+}
+Ref: event_tags.event_id > events.event_id
+Ref: event_tags.tag_id > tags.tag_id
+
+Table eligibility_groups {
+  eligibility_id uuid [pk, default: `uuid_generate_v4()`]
+  code text [not null, unique]
+  name text [not null]
+  is_active boolean [default: true]
+}
+Table event_eligibilities {
+  event_id uuid [not null]
+  eligibility_id uuid [not null]
+  indexes { (event_id, eligibility_id) [pk] }
+}
+Ref: event_eligibilities.event_id > events.event_id
+Ref: event_eligibilities.eligibility_id > eligibility_groups.eligibility_id
+
+Table outcomes {
+  outcome_id uuid [pk, default: `uuid_generate_v4()`]
+  title text [not null]
+  description text
+}
+Table event_outcomes {
+  event_id uuid [not null]
+  outcome_id uuid [not null]
+  position int
+  indexes { (event_id, outcome_id) [pk] }
+}
+Ref: event_outcomes.event_id > events.event_id
+Ref: event_outcomes.outcome_id > outcomes.outcome_id
+
+Table event_agenda_items {
+  agenda_item_id uuid [pk, default: `uuid_generate_v4()`]
+  event_id uuid [not null]
+  start_at timestamptz
+  end_at timestamptz
+  title text [not null]
+  description text
+  position int
+}
+Ref: event_agenda_items.event_id > events.event_id
+
+Table speakers {
+  speaker_id uuid [pk, default: `uuid_generate_v4()`]
+  display_name text [not null]
+  title text
+  bio text
+  avatar_file_id uuid
+  created_at timestamptz [default: `now()`]
+}
+Ref: speakers.avatar_file_id > files.file_id
+
+Table event_speakers {
+  event_id uuid [not null]
+  speaker_id uuid [not null]
+  role text
+  position int
+  indexes { (event_id, speaker_id) [pk] }
+}
+Ref: event_speakers.event_id > events.event_id
+Ref: event_speakers.speaker_id > speakers.speaker_id
+
+// ====== USER ACTIONS ======
+Table event_bookmarks {
+  user_id uuid [not null]
+  event_id uuid [not null]
+  created_at timestamptz [default: `now()`]
+  indexes { (user_id, event_id) [pk] }
+}
+Ref: event_bookmarks.user_id > users.user_id
+Ref: event_bookmarks.event_id > events.event_id
+
+Table event_ticket_types {
+  ticket_type_id uuid [pk, default: `uuid_generate_v4()`]
+  event_id uuid [not null]
+  name text [not null]
+  price numeric(18,2) [default: 0]
+  currency text [default: 'THB']
+  capacity int
+  created_at timestamptz [default: `now()`]
+}
+Ref: event_ticket_types.event_id > events.event_id
+
+Table event_registrations {
+  registration_id uuid [pk, default: `uuid_generate_v4()`]
+  event_id uuid [not null]
+  user_id uuid [not null]
+  ticket_type_id uuid
+  status text
+  registered_at timestamptz [default: `now()`]
+  cancelled_at timestamptz
+  attended_at timestamptz
+}
+Ref: event_registrations.event_id > events.event_id
+Ref: event_registrations.user_id > users.user_id
+Ref: event_registrations.ticket_type_id > event_ticket_types.ticket_type_id
+
+Table event_views {
+  view_id uuid [pk, default: `uuid_generate_v4()`]
+  user_id uuid
+  event_id uuid [not null]
+  viewed_at timestamptz [default: `now()`]
+}
+Ref: event_views.user_id > users.user_id
+Ref: event_views.event_id > events.event_id
+
+// ====== CREDENTIALS / CODE ======
+Table medal_verse_codes {
+  code_id uuid [pk, default: `uuid_generate_v4()`]
+  code text [not null, unique]
+  event_id uuid [not null]
+  max_uses int
+  used_count int [default: 0]
+  expires_at timestamptz
+  is_active boolean [default: true]
+  created_at timestamptz [default: `now()`]
+  deleted_at timestamptz
+}
+Ref: medal_verse_codes.event_id > events.event_id
+
+Table credentials {
+  credential_id uuid [pk, default: `uuid_generate_v4()`]
+  event_id uuid [not null]
+  user_id uuid [not null]
+  registration_id uuid
+  name text
+  type text
+  recipient_name text
+  field_id uuid
+  rank text
+  issue_date timestamptz
+  key_learning text
+  is_private boolean [default: false]
+  created_at timestamptz [default: `now()`]
+  updated_at timestamptz [default: `now()`]
+  deleted_at timestamptz
+}
+Ref: credentials.event_id > events.event_id
+Ref: credentials.user_id > users.user_id
+Ref: credentials.registration_id > event_registrations.registration_id
+Ref: credentials.field_id > fields.field_id

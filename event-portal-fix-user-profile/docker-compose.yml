@@ -1,0 +1,20 @@
+services:
+  event-portal:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8080}
+    container_name: event-portal
+    environment:
+      - APP_DATA_MODE=api
+      - NODE_ENV=production
+      - APP_DATA_MODE=api
+    networks:
+      - medalverse-network
+    restart: unless-stopped
+
+networks:
+  medalverse-network:
+    external: true
+    name: medalverse-network
