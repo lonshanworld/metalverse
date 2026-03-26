@@ -57,3 +57,5 @@ If I had a bit more time with this codebase, here’s how I’d tackle things to
 
 4. **Make the Backend louder on errors:** 
    Currently, if the frontend sends a weirdly formatted location or a typo in a field name, the Go backend often just ignores it and saves a partial record. I’d switch to using strict JSON binding in the Gin controllers so the server actually "yells" (returns a 400 error) if the data isn't exactly what it expects. It’s better to fail fast than to save "zombie" data that breaks the UI later.
+
+Side Note: I haven't anything for .env because when i check the frontend, most of process.env have default value, so i assume it will work fine. If not, please let me know. Well, it was working when i ran it locally.
